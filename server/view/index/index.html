@@ -1,0 +1,61 @@
+<html>
+<head></head>
+<body>
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+接收者<input type="text" id="fid">
+发送内容<input type="text" id="content">
+<button onclick="aaa()">发送</button>
+<script>
+    var ws = new WebSocket("wss://game.haibarai.com/ws");
+    ws.onopen = function () {
+        console.log('连接中...')
+    };
+    ws.onclose = function (e) {
+        console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
+        console.log(e)
+    };
+
+    ws.onerror = function(evt) {
+        console.log(evt)
+    };
+
+    ws.onmessage = function (evt) {
+        // console.log(evt.data)
+        call_message(evt.data)
+    };
+    //处理回调参数
+    function call_message(data){
+        //处理回调数据
+        console.log(data);
+        var start;
+        var start_arr = data.indexOf('[');
+        var start_json = data.indexOf('{');
+        if(start_arr < 0){
+            start = start_json;
+        }
+        if(start_arr >= 0 && start_json >= 0){
+            start = Math.min(start_arr,start_json);
+        }
+        if(start){
+            var json =  JSON.parse(data.substr(start));
+            if (json instanceof Array){
+                window[json[0]](json[1])
+            }
+        }
+    }
+    function testcall(message){
+        console.log(message);
+    }
+
+    function aaa(){
+        var fid = $("#fid").val();
+        var content = $("#content").val();
+        ws.send(JSON.stringify(['test',{
+            to:fid,
+            aa:content
+        }]));
+    }
+
+</script>
+</body>
+</html>
